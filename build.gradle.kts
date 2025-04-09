@@ -4,7 +4,7 @@ plugins {
     alias(libs.plugins.kotlin.plugin.serialization)
 }
 
-group = "lv"
+group = "lv.divsk"
 version = "0.0.1"
 
 application {

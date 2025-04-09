@@ -1,4 +1,4 @@
-package lv
+package lv.lv.divsk
 
 import io.ktor.serialization.kotlinx.json.json
 import io.ktor.server.application.*
