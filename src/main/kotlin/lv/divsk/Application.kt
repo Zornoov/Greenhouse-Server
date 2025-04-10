@@ -1,11 +1,15 @@
-package lv.lv.divsk
+package lv.divsk
 
-import io.ktor.serialization.kotlinx.json.json
+import io.ktor.serialization.kotlinx.json.*
 import io.ktor.server.application.*
-import io.ktor.server.plugins.contentnegotiation.ContentNegotiation
+import io.ktor.server.netty.*
+import io.ktor.server.plugins.contentnegotiation.*
+import lv.divsk.repository.GreenhouseRepository
+
+val greenhouseRepository = GreenhouseRepository()
 
 fun main(args: Array<String>) {
-    io.ktor.server.netty.EngineMain.main(args)
+    EngineMain.main(args)
 }
 
 fun Application.module() {

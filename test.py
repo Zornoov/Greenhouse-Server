@@ -1,19 +1,68 @@
 import asyncio
+import serial
 import websockets
+import random
 
-async def communicate_with_socket():
-    uri = "ws://localhost:8080/ws"
+SERIAL_PORT = "COM5"
+BAUDRATE = 9600
 
+
+greenhouse_id = None
+ser = serial.Serial(SERIAL_PORT, BAUDRATE, timeout=1)
+
+async def wait_for_ready():
+    while True:
+        line = ser.readline().decode().strip()
+        if "READY" in line:
+            print("[ARDUINO READY]")
+            break
+
+async def connect_channel():
+    global greenhouse_id
+    uri = "ws://localhost:8080/connect"
     async with websockets.connect(uri) as websocket:
-        message = "Hello, server!"
-        await websocket.send(message)
-        print(f"Sent: {message}")
+        greenhouse_id = await websocket.recv()
+        print(f"[CONNECTED] Received id: {greenhouse_id}")
+        ser.write(f"ID:{greenhouse_id}\n".encode())
 
-        response = await websocket.recv()
-        print(f"Received: {response}")
+        async def handle_incoming():
+            try:
+                async for message in websocket:
+                    if message == "update_request":
+                        print("[SERVER REQUEST] Requesting Arduino data")
+                        ser.write(b"update_request\n")
+                    elif message == "start_watering":
+                        print("[SERVER REQUEST] Starting watering")
+                        ser.write(b"start_watering\n")
+            except websockets.exceptions.ConnectionClosed:
+                print("[DISCONNECTED] Server closed connection")
 
+        async def send_ping():
+            try:
+                while True:
+                    await websocket.send("pong")
+                    await asyncio.sleep(10)
+            except websockets.exceptions.ConnectionClosed:
+                pass
 
-        close_response = await websocket.recv()
-        print(f"Received: {close_response}")
+        await asyncio.gather(handle_incoming(), send_ping())
 
-asyncio.get_event_loop().run_until_complete(communicate_with_socket())
+async def read_from_serial_and_send_data():
+    uri = "ws://localhost:8080/data"
+    while True:
+        line = ser.readline().decode().strip()
+        if line and greenhouse_id and not line.startswith("["):
+            async with websockets.connect(uri) as websocket:
+                await websocket.send(line)
+                print(f"[DATA SENT] {line}")
+        await asyncio.sleep(0.1)
+
+async def main():
+    await wait_for_ready()
+    await asyncio.gather(
+        connect_channel(),
+        read_from_serial_and_send_data()
+    )
+
+if __name__ == "__main__":
+    asyncio.run(main())
