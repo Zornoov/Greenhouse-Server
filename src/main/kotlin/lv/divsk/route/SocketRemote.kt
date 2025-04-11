@@ -1,13 +1,11 @@
 package lv.divsk.route
 
-import io.ktor.server.routing.Route
-import io.ktor.server.websocket.webSocket
-import io.ktor.websocket.Frame
-import io.ktor.websocket.readText
-import io.ktor.websocket.send
+import io.ktor.server.routing.*
+import io.ktor.server.websocket.*
+import io.ktor.websocket.*
 import kotlinx.coroutines.channels.consumeEach
 import lv.divsk.greenhouseRepository
-import java.util.UUID
+import java.util.*
 
 fun Route.socketRoutes() {
     webSocket("/connect") {
