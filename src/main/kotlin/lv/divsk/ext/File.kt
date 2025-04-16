@@ -11,7 +11,12 @@ fun absolute(fileName: String): File {
 }
 
 fun local(fileName: String): File {
-    val fileUrl = object {}.javaClass.getResource("/$fileName")
+    val inputStream = object {}.javaClass.getResourceAsStream("/$fileName")
         ?: throw IllegalArgumentException("File not found in resources: $fileName")
-    return File(fileUrl.toURI())
+
+    val tempFile = File.createTempFile("resource-", "-" + fileName.substringAfterLast("/"))
+    tempFile.deleteOnExit()
+    inputStream.use { input -> tempFile.outputStream().use { output -> input.copyTo(output) } }
+
+    return tempFile
 }

@@ -2,7 +2,7 @@ import asyncio
 import serial
 import websockets
 
-SERIAL_PORT = "COM5"
+SERIAL_PORT = "COM3"
 BAUDRATE = 9600
 
 ser = serial.Serial(SERIAL_PORT, BAUDRATE, timeout=1)
@@ -13,7 +13,7 @@ async def wait_for_ready():
     print("[ARDUINO READY]")
 
 async def connect_channel():
-    uri = "ws://localhost:8080/connect"
+    uri = "ws://89.39.121.106:8080/connect"
     while True:
         try:
             async with websockets.connect(uri) as ws:
@@ -38,7 +38,7 @@ async def connect_channel():
             await asyncio.sleep(2)
 
 async def send_serial_data():
-    uri = "ws://localhost:8080/data"
+    uri = "ws://89.39.121.106:8080/data"
     while True:
         try:
             async with websockets.connect(uri) as ws:

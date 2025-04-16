@@ -1,53 +1,55 @@
-#define ledPin 6
-#define sensorPin A0
+#define LED_PIN 6
+#define SENSOR_PIN A0
 
 String greenhouseId = "";
 unsigned long lastSendTime = 0;
-const unsigned long sendInterval = 60000; // 1 минута
+const unsigned long SEND_INTERVAL = 60000;
 
 void setup() {
   Serial.begin(9600);
-  pinMode(ledPin, OUTPUT);
-  digitalWrite(ledPin, LOW);
+  pinMode(LED_PIN, OUTPUT);
+  digitalWrite(LED_PIN, LOW);
   while (!Serial);
   Serial.println("READY");
 }
 
 void loop() {
   if (Serial.available()) {
-    String command = Serial.readStringUntil('\n');
-    command.trim();
+    String cmd = Serial.readStringUntil('\n');
+    cmd.trim();
 
-    if (greenhouseId == "" && command.startsWith("ID:")) {
-      greenhouseId = command.substring(3);
+    if (greenhouseId == "" && cmd.startsWith("ID:")) {
+      greenhouseId = cmd.substring(3);
       Serial.println("[ID SET] " + greenhouseId);
     }
-    else if (command == "update_request") {
-      sendSensorData();
-    }
-    else if (command == "start_watering") {
-      // TODO: управление поливом
-      Serial.println("Start wat");
+    else if (cmd == "update_request" || cmd == "start_watering") {
+      handleCommand(cmd);
     }
   }
 
-  if (greenhouseId != "" && millis() - lastSendTime > sendInterval) {
+  if (millis() - lastSendTime > SEND_INTERVAL && greenhouseId != "") {
     sendSensorData();
     lastSendTime = millis();
   }
 }
 
-void sendSensorData() {
-  int temperature = 0;
-  int waterLevel = readSensor();
-
-  String message = greenhouseId + " " + String(temperature) + " " + String(waterLevel);
-  Serial.println(message);
+void handleCommand(const String& cmd) {
+  if (cmd == "update_request") {
+    sendSensorData();
+  }
+  else if (cmd == "start_watering") {
+    Serial.println("Start watering");
+  }
 }
 
-int readSensor() {
-  int sensorValue = analogRead(sensorPin);
-  int outputValue = map(sensorValue, 0, 1023, 255, 0);
-  analogWrite(ledPin, outputValue);
-  return outputValue;
+void sendSensorData() {
+  int waterLevel = readWaterSensor();
+  Serial.println(greenhouseId + " " + String(0) + " " + String(waterLevel));
+}
+
+int readWaterSensor() {
+  int val = analogRead(SENSOR_PIN);
+  int output = map(val, 0, 1023, 255, 0);
+  analogWrite(LED_PIN, output);
+  return output;
 }
