@@ -3,7 +3,7 @@ name: Deploy Ktor App
 on:
   push:
     branches:
-      - main  # или другая ветка, с которой деплоишь
+      - main  
 
 jobs:
   deploy:
