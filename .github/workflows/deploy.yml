@@ -28,14 +28,14 @@ jobs:
     - name: Build project (shadowJar)
       run: ./gradlew build
 
-    - name: Create new tag
+    - name: Create random tag
       run: |
-        VERSION=$(./gradlew -q version)
-        git tag "v$VERSION"
-        git push origin "v$VERSION"
+        TAG="v$(date +%Y%m%d%H%M%S)-$(openssl rand -hex 2)"
+        git tag "$TAG"
+        git push origin "$TAG"
+        echo "TAG=$TAG" >> $GITHUB_ENV
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
     - name: Create GitHub release and upload JAR
       uses: softprops/action-gh-release@v1
       with:
