@@ -28,17 +28,13 @@ jobs:
     - name: Build project (shadowJar)
       run: ./gradlew build
 
-    - name: Setup SSH key (if using password auth, see below)
-      run: |
-        mkdir -p ~/.ssh
-        echo "${{ secrets.SERVER_SSH_KEY }}" > ~/.ssh/id_ed25519
-        chmod 600 ~/.ssh/id_ed25519
-        ssh-keyscan -H ${{ secrets.SERVER_HOST }} >> ~/.ssh/known_hosts
+    - name: Install sshpass
+      run: sudo apt-get install sshpass
 
-    - name: Deploy JAR to remote server
+    - name: Copy jar to remote server using sshpass
       run: |
-        scp build/libs/*-all.jar ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }}:/home/${{ secrets.SERVER_USER }}/ktor-app-all.jar
-
+        sshpass -p 'uU6pB9gZ4feV' scp build/libs/*-all.jar root@server:/home/root/ktor-app-all.jar
+        
     - name: Run Ktor app remotely
       run: |
         ssh ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} << 'EOF'
