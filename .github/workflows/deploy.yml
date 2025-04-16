@@ -33,7 +33,7 @@ jobs:
 
     - name: Copy jar to remote server using sshpass
       run: |
-        sshpass -p 'uU6pB9gZ4feV' scp build/libs/*-all.jar root@server:/home/root/ktor-app-all.jar
+        sshpass -p '${{ secrets.SERVER_PASSWORD }}' scp build/libs/*-all.jar ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }}:/home/root/ktor-app-all.jar
         
     - name: Run Ktor app remotely
       run: |
