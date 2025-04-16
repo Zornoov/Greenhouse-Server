@@ -31,10 +31,11 @@ jobs:
     - name: Install sshpass
       run: sudo apt-get install sshpass
 
-    - name: Copy jar to remote server using sshpass
+    - name: Deploy jar using SFTP
       run: |
-        sshpass -p '${{ secrets.SERVER_PASSWORD }}' scp build/libs/*-all.jar ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }}:/home/root/ktor-app-all.jar
-        
+        echo "put build/libs/*-all.jar /home/root/ktor-app-all.jar" | sftp -oBatchMode=no -oStrictHostKeyChecking=no root@89.39.121.106
+      env:
+        SFTP_PASSWORD: ${{ secrets.SFTP_PASSWORD }}
     - name: Run Ktor app remotely
       run: |
         ssh ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} << 'EOF'
