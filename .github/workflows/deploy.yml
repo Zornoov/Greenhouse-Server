@@ -3,7 +3,7 @@ name: Create GitHub Release
 on:
   push:
     tags:
-      - 'v*'  # Срабатывает при пуше тегов вида v1.0, v2.1.0 и т.д.
+      - 'main'
 
 jobs:
   release:
