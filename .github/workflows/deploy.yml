@@ -3,7 +3,7 @@ name: Deploy Ktor App
 on:
   push:
     branches:
-      - main  
+      - main 
 
 jobs:
   deploy:
@@ -16,7 +16,7 @@ jobs:
     - name: Set up JDK
       uses: actions/setup-java@v3
       with:
-        java-version: '17'
+        java-version: '23'  
         distribution: 'temurin'
 
     - name: Set up Gradle
@@ -25,10 +25,10 @@ jobs:
     - name: Grant execute permission for Gradle wrapper
       run: chmod +x ./gradlew
 
-    - name: Build project
+    - name: Build project (shadowJar)
       run: ./gradlew build
 
-    - name: Setup SSH key
+    - name: Setup SSH key (if using password auth, see below)
       run: |
         mkdir -p ~/.ssh
         echo "${{ secrets.SERVER_SSH_KEY }}" > ~/.ssh/id_ed25519
@@ -37,11 +37,12 @@ jobs:
 
     - name: Deploy JAR to remote server
       run: |
-        scp build/libs/*.jar ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }}:/home/${{ secrets.SERVER_USER }}/ktor-app.jar
+        scp build/libs/*-all.jar ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }}:/home/${{ secrets.SERVER_USER }}/ktor-app-all.jar
 
     - name: Run Ktor app remotely
       run: |
         ssh ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} << 'EOF'
-        pkill -f 'ktor-app.jar' || true
-        nohup java -jar ktor-app.jar > ktor.log 2>&1 &
+
+        pkill -f 'ktor-app-all.jar' || true
+        nohup java -jar /home/${{ secrets.SERVER_USER }}/ktor-app-all.jar > ktor.log 2>&1 &
         EOF
