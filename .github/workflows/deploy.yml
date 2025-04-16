@@ -1,12 +1,12 @@
-name: Create GitHub Release
+name: Build and Release
 
 on:
   push:
-    tags:
-      - 'main'
+    branches:
+      - main
 
 jobs:
-  release:
+  build:
     runs-on: ubuntu-latest
 
     steps:
@@ -24,6 +24,14 @@ jobs:
 
     - name: Build project (shadowJar)
       run: ./gradlew build
+
+    - name: Create new tag
+      run: |
+        VERSION=$(./gradlew -q version)
+        git tag "v$VERSION"
+        git push origin "v$VERSION"
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Create GitHub release and upload JAR
       uses: softprops/action-gh-release@v1
