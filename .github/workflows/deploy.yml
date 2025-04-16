@@ -1,45 +1,33 @@
-name: Deploy Ktor App
+name: Create GitHub Release
 
 on:
   push:
-    branches:
-      - main 
+    tags:
+      - 'v*'  # Срабатывает при пуше тегов вида v1.0, v2.1.0 и т.д.
 
 jobs:
-  deploy:
+  release:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout project
+    - name: Checkout code
       uses: actions/checkout@v3
 
     - name: Set up JDK
       uses: actions/setup-java@v3
       with:
-        java-version: '17'  
+        java-version: '17'
         distribution: 'temurin'
 
     - name: Set up Gradle
       uses: gradle/gradle-build-action@v2
 
-    - name: Grant execute permission for Gradle wrapper
-      run: chmod +x ./gradlew
-
     - name: Build project (shadowJar)
       run: ./gradlew build
 
-    - name: Install sshpass
-      run: sudo apt-get install sshpass
-
-    - name: Deploy jar using SFTP
-      run: |
-        echo "put build/libs/*-all.jar /home/root/ktor-app-all.jar" | sftp -oBatchMode=no -oStrictHostKeyChecking=no root@89.39.121.106
+    - name: Create GitHub release and upload JAR
+      uses: softprops/action-gh-release@v1
+      with:
+        files: build/libs/*-all.jar
       env:
-        SFTP_PASSWORD: ${{ secrets.SFTP_PASSWORD }}
-    - name: Run Ktor app remotely
-      run: |
-        ssh ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} << 'EOF'
-
-        pkill -f 'ktor-app-all.jar' || true
-        nohup java -jar /home/${{ secrets.SERVER_USER }}/ktor-app-all.jar > ktor.log 2>&1 &
-        EOF
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
